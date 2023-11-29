@@ -1,6 +1,26 @@
 const router = require('express').Router();
-const { Post } = require('../../models/');
+const { Blog } = require('../../models/');
 const withAuth = require('../../utils/auth');
+
+router.get('/', withAuth, async (req, res) => {
+    try {
+      const blogData = await Blog.findAll({
+        where: {
+          userId: req.session.userId,
+        },
+      });
+  
+      const blogs = blogData.map((blog) => blog.get({ plain: true }));
+  
+      res.render('all-blogs-admin', {
+        layout: 'dashboard',
+        posts,
+      });
+    } catch (err) {
+      res.redirect('login');
+    }
+  });
+
 router.post('/', withAuth, async (req, res) => {
   const body = req.body;
   try {
@@ -10,6 +30,7 @@ router.post('/', withAuth, async (req, res) => {
     res.status(500).json(err);
   }
 });
+
 router.put('/:id', withAuth, async (req, res) => {
   try {
     const [affectedRows] = await Blog.update(req.body, {
@@ -26,6 +47,7 @@ router.put('/:id', withAuth, async (req, res) => {
     res.status(500).json(err);
   }
 });
+
 router.delete('/:id', withAuth, async (req, res) => {
   try {
     const [affectedRows] = Post.destroy({
@@ -42,4 +64,5 @@ router.delete('/:id', withAuth, async (req, res) => {
     res.status(500).json(err);
   }
 });
+
 module.exports = router;
